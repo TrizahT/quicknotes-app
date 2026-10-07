@@ -4,8 +4,12 @@ const noteCategory = document.querySelector("#note-category");
 const notesList = document.querySelector("#notes-list");
 const noteCount = document.querySelector("#note-count");
 const errorMessage = document.querySelector("#error-message");
+const searchInput = document.querySelector("#search-input");
 
 let notes = [];
+function saveNotes() {
+  localStorage.setItem("quickNotes", JSON.stringify(notes));
+}
 function updateNoteCount() {
   if (notes.length === 0) {
     noteCount.textContent = "You have no notes yet.";
@@ -15,10 +19,15 @@ function updateNoteCount() {
     noteCount.textContent = `You have ${notes.length} notes.`;
   }
 }
-function render() {
+function render(notesToRender = notes) {
     notesList.innerHTML = "";
-  
-    notes.forEach((note) => {
+    if (notesToRender.length === 0 && searchInput.value.trim() !== "")
+       {
+      const message = document.createElement("li");
+      message.textContent = "No notes match your search.";
+      notesList.appendChild(message);
+    }
+    notesToRender.forEach((note) => {
       const li = document.createElement("li");
       li.classList.add(`category-${note.category}`);
   
@@ -36,11 +45,11 @@ function render() {
   
       const deleteButton = document.createElement("button");
       deleteButton.textContent = "Delete";
-      deleteButton.addEventListener("click", () => { notes = notes.filter((item) => item.id !== note.id);
+      deleteButton.addEventListener("click", () => {
+        notes = notes.filter((item) => item.id !== note.id);
+        saveNotes();
         render();
-        updateNoteCount();
       });
-  
       li.appendChild(text);
       li.appendChild(category);
       li.appendChild(date);
@@ -48,7 +57,10 @@ function render() {
   
       notesList.appendChild(li);
     });
+  
+    updateNoteCount();
   }
+  
   noteForm.addEventListener("submit", (event) => {
     event.preventDefault();
     errorMessage.textContent = "";
@@ -64,26 +76,33 @@ if (text.length > 200) {
   errorMessage.textContent = "Notes must be 200 characters or fewer.";
   return;
 }
+
   
     const newNote = {
       id: Date.now(),
-      text: noteInput.value,
+      text: text,
       category: noteCategory.value,
       createdAt: new Date().toLocaleString(),
     };
   
     notes.push(newNote);
+    saveNotes();
     render();
-  
     noteInput.value = "";
   });
-  const newNote = {
-    id: Date.now(),
-    text: noteInput.value,
-    category: noteCategory.value,
-    createdAt: new Date().toLocaleString(),
-  };
-  notes.push(newNote);
-  renderO();
-  noteInput.value = "";
+  searchInput.addEventListener("input", () => {
+    const searchTerm = searchInput.value.toLowerCase().trim();
   
+    const filteredNotes = notes.filter((note) =>
+      note.text.toLowerCase().includes(searchTerm)
+    );
+  
+    render(filteredNotes);
+  });
+  const savedNotes = localStorage.getItem("quickNotes");
+
+if (savedNotes !== null) {
+  notes = JSON.parse(savedNotes);
+}
+
+render();
