@@ -219,3 +219,13 @@ button:hover {
     font-size: 34px;
   }
 }
+#clear-all-btn {
+  background-color: transparent;
+  color: var(--accent-dark);
+  border: 1px solid var(--accent);
+}
+
+#clear-all-btn:hover {
+  background-color: var(--accent);
+  color: #ffffff;
+}
